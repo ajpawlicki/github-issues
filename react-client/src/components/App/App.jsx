@@ -12,8 +12,14 @@ class App extends Component {
     this.issues = [];
     
     this.state = {
-      renderedIssues: []
+      renderedIssues: [],
+      dropdownCategories: {
+        Authors: true,
+        Labels: true
+      }
     }
+
+    this.toggleDropdowns = this.toggleDropdowns.bind(this);
   }
 
   fetchIssues() {
@@ -77,12 +83,16 @@ class App extends Component {
   }
 
   handleLabelClick(labelId) {
+    this.toggleDropdowns(null);
+    
     this.setState({
       renderedIssues: this.filterIssuesByLabel(this.issues, labelId)
     });
   }
 
   handleAuthorClick(authorId) {
+    this.toggleDropdowns(null);
+
     this.setState({
       renderedIssues: this.filterIssuesByAuthor(this.issues, authorId)
     });
@@ -92,6 +102,20 @@ class App extends Component {
     this.setState({
       renderedIssues: this.issues
     });
+  }
+
+  toggleDropdowns(categoryName) {
+    const categories = this.state.dropdownCategories;
+    
+    for (let category in categories) {
+      if (categoryName === category) {
+        categories[category] =  !categories[category];
+      } else {
+        categories[category] = true;
+      }
+    }
+
+    this.setState({ dropdownCategories: categories });
   }
 
   render() {
@@ -105,12 +129,16 @@ class App extends Component {
             <CategoryHeader
               category="Authors"
               dropdownRows={this.getUniqueAuthors(this.issues)}
-              handleRowClick={this.handleAuthorClick.bind(this)} />
+              isDropdownHidden={this.state.dropdownCategories.Authors}
+              handleRowClick={this.handleAuthorClick.bind(this)}
+              toggleDropdowns={this.toggleDropdowns} />
 
             <CategoryHeader
               category="Labels"
               dropdownRows={this.getUniqueLabels(this.issues)}
-              handleRowClick={this.handleLabelClick.bind(this)} />
+              isDropdownHidden={this.state.dropdownCategories.Labels}
+              handleRowClick={this.handleLabelClick.bind(this)}
+              toggleDropdowns={this.toggleDropdowns} />
             
             <button onClick={this.handleRemoveFilters.bind(this)}>
               Remove Filters
