@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import Issue from '../Issue/Issue.jsx';
+import CategoryHeader from '../CategoryHeader/CategoryHeader.jsx';
 
 import './app-style.css';
 
@@ -17,8 +18,10 @@ class App extends Component {
     fetch('https://api.github.com/repos/facebook/react/issues')
     .then(res => res.json())
     .then(data => {
+      this.issues = data;
+      
       this.setState({
-        renderedIssues: data
+        renderedIssues: this.issues
       });
     })
     .catch(err => {
@@ -31,6 +34,58 @@ class App extends Component {
     this.fetchIssues();
   }
 
+  getUniqueAuthors(issues) {
+    const users = issues.map(issue => issue.user);
+
+    return this.getUniqueObjectsFromArray(users);
+  }
+
+  getUniqueLabels(issues) {
+    const labels = issues.reduce((labels, issue) => {
+      return labels.concat(issue.labels);
+    }, []);
+
+    return this.getUniqueObjectsFromArray(labels);
+  }
+
+  getUniqueObjectsFromArray(array) {
+    const uniqueObjects = array.reduce((hash, obj) => {
+      if (!hash.has(obj.id)) {
+        hash.set(obj.id, obj);
+      }
+
+      return hash;
+    }, new Map());
+
+    return Array.from(uniqueObjects.values());
+  }
+
+  filterIssuesByAuthor(issues, authorId) {
+    return issues.filter(issue => issue.user.id === authorId);
+  }
+
+  filterIssuesByLabel(issues, labelId) {
+    return issues.filter(issue => {
+      for (let label of issue.labels) {
+        if (label.id === labelId) return true;
+      }
+
+      return false;
+    });
+  }
+
+  handleLabelClick(labelId) {
+    this.setState({
+      renderedIssues: this.filterIssuesByLabel(this.issues, labelId)
+    });
+  }
+
+  handleAuthorClick(authorId) {
+    this.setState({
+      renderedIssues: this.filterIssuesByAuthor(this.issues, authorId)
+    });
+  }
+
   render() {
     return (
       <div>
@@ -39,6 +94,7 @@ class App extends Component {
         <div className="issue-container">
           Header
           <div className="headers-list">
+            <CategoryHeader />
           </div>
         </div>
 
