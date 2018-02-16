@@ -8,7 +8,9 @@ import './app-style.css';
 class App extends Component {
   constructor(props) {
     super(props);
-
+    
+    this.issues = [];
+    
     this.state = {
       renderedIssues: []
     }
@@ -86,15 +88,33 @@ class App extends Component {
     });
   }
 
+  handleRemoveFilters() {
+    this.setState({
+      renderedIssues: this.issues
+    });
+  }
+
   render() {
     return (
       <div>
         <h2>GitHub Issues</h2>
 
-        <div className="issue-container">
+        <div className="headers-container">
           Header
           <div className="headers-list">
-            <CategoryHeader />
+            <CategoryHeader
+              category="Authors"
+              dropdownRows={this.getUniqueAuthors(this.issues)}
+              handleRowClick={this.handleAuthorClick.bind(this)} />
+
+            <CategoryHeader
+              category="Labels"
+              dropdownRows={this.getUniqueLabels(this.issues)}
+              handleRowClick={this.handleLabelClick.bind(this)} />
+            
+            <button onClick={this.handleRemoveFilters.bind(this)}>
+              Remove Filters
+            </button>
           </div>
         </div>
 
