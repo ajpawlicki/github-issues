@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import './issue-style.css';
 
 export default (props) => {
-  const { number, user, state, title, assignee, labels, created_at, html_url } = props.issue;
+  const { number, user, state, title, assignee, labels, created_at, html_url, comments } = props.issue;
   const date = new Date(created_at).toDateString();
 
   return (
@@ -26,7 +26,7 @@ export default (props) => {
 
         <div className="issue-description">
           <span>
-            {`#${number} ${state}ed on ${date} by ${user.login}`}
+            {`#${number} ${state}ed on ${date} by ${user.login} with ${comments} comment${comments === 1 ? '' : 's'}`}
           </span>
         </div>
       </div>
