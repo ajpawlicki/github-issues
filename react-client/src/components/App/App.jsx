@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import Issue from '../Issue/Issue.jsx';
 import CategoryHeader from '../CategoryHeader/CategoryHeader.jsx';
+import SortHeader from '../SortHeader/SortHeader.jsx';
 
 import './app-style.css';
 
@@ -15,25 +16,41 @@ class App extends Component {
       renderedIssues: [],
       dropdownCategories: {
         Authors: true,
-        Labels: true
-      }
+        Labels: true,
+        Sort: true
+      },
+      sortingOptions: ['created_at', 'comments', 'modified_at'],
+      errorRetrievingData: false,
+      loadingData: false,
     }
 
     this.toggleDropdowns = this.toggleDropdowns.bind(this);
   }
 
   fetchIssues() {
+    this.setState({ errorRetrievingData: false, loadingData: true });
+
     fetch('https://api.github.com/repos/facebook/react/issues')
     .then(res => res.json())
     .then(data => {
-      this.issues = data;
+      if (Array.isArray(data)) {
+        this.issues = data;
+      } else {
+        this.setState({ errorRetrievingData: true });
+      }
       
       this.setState({
-        renderedIssues: this.issues
+        renderedIssues: this.issues,
+        loadingData: false
       });
     })
     .catch(err => {
       console.error(err);
+
+      this.setState({
+        errorRetrievingData: true,
+        loadingData: false
+      });
     });
 
   }
@@ -84,7 +101,7 @@ class App extends Component {
 
   handleLabelClick(labelId) {
     this.toggleDropdowns(null);
-    
+
     this.setState({
       renderedIssues: this.filterIssuesByLabel(this.issues, labelId)
     });
@@ -99,6 +116,8 @@ class App extends Component {
   }
 
   handleRemoveFilters() {
+    this.toggleDropdowns(null);
+
     this.setState({
       renderedIssues: this.issues
     });
@@ -118,13 +137,28 @@ class App extends Component {
     this.setState({ dropdownCategories: categories });
   }
 
+  handleSortIssues(sortingOption) {
+    this.toggleDropdowns(null);
+
+    let cb = x => x;
+    
+    if (sortingOption.indexOf('_at') !== -1) cb = x => new Date(x);
+    
+    const sortedIssues = this.issues.slice().sort((a,b) => {
+      return cb(b[sortingOption]) - cb(a[sortingOption]);
+    });
+
+    this.setState({ renderedIssues: sortedIssues });
+  }
+
   render() {
     return (
       <div>
         <h2>GitHub Issues</h2>
 
         <div className="headers-container">
-          Header
+          <span className="headers-title">Headers</span>
+
           <div className="headers-list">
             <CategoryHeader
               category="Authors"
@@ -139,6 +173,13 @@ class App extends Component {
               isDropdownHidden={this.state.dropdownCategories.Labels}
               handleRowClick={this.handleLabelClick.bind(this)}
               toggleDropdowns={this.toggleDropdowns} />
+
+            <SortHeader
+              category="Sort"
+              dropdownRows={this.state.sortingOptions}
+              isDropdownHidden={this.state.dropdownCategories.Sort}
+              handleRowClick={this.handleSortIssues.bind(this)}
+              toggleDropdowns={this.toggleDropdowns} />
             
             <button onClick={this.handleRemoveFilters.bind(this)}>
               Remove Filters
@@ -147,6 +188,10 @@ class App extends Component {
         </div>
 
         <div className="issues-list">
+        
+        {this.state.loadingData ? <div className="alert">Loading...</div> : null}
+        {this.state.errorRetrievingData ? <div className="alert">There was an error!</div> : null}
+
           {this.state.renderedIssues.map((issue, index) => {
             return (
               <Issue
