@@ -2,6 +2,20 @@ import React, { Component } from 'react';
 
 import './category-header-style.css';
 
+const renderDataByCategory = (category, dropdownData) => {
+  if (category === 'Authors') {
+    return (
+      <span>{dropdownData.login}</span>
+    );
+  } else if (category === 'Labels') {
+    return (
+      <span style={{ backgroundColor: '#' + dropdownData.color }} className="issue-label">{dropdownData.name}</span>
+    );
+  } else {
+    return null;
+  }
+};
+
 const CategoryHeader = props => {
   return (
     <div className="header-container">
@@ -23,7 +37,7 @@ const CategoryHeader = props => {
                 className="dropdown-row"
                 onClick={ () => props.handleRowClick(dropdownData.id) }
               >
-                {dropdownData.id}
+                {renderDataByCategory(props.category, dropdownData)}
               </div>
             );
           })}
